@@ -1,0 +1,353 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Luxury Cinematic Theme - Deep Black + Gold */
+  --primary: #d4af37; /* Luxe Gold */
+  --primary-foreground: #0a0a0a; /* Deep Black */
+  --sidebar-primary: #d4af37;
+  --sidebar-primary-foreground: #0a0a0a;
+  --chart-1: #d4af37;
+  --chart-2: #e8e8e8;
+  --chart-3: #b8860b;
+  --chart-4: #c9a961;
+  --chart-5: #8b7500;
+  --radius: 0.5rem; /* Subtle, not rounded */
+  --background: #0a0a0a; /* Deep black */
+  --foreground: #ffffff; /* White text */
+  --card: #1a1a1a; /* Charcoal */
+  --card-foreground: #ffffff;
+  --popover: #1a1a1a;
+  --popover-foreground: #ffffff;
+  --secondary: #2a2a2a; /* Dark gray */
+  --secondary-foreground: #e8e8e8; /* Silver */
+  --muted: #333333; /* Muted dark */
+  --muted-foreground: #b0b0b0; /* Muted silver */
+  --accent: #d4af37; /* Gold accent */
+  --accent-foreground: #0a0a0a; /* Black on gold */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #333333; /* Dark gray border */
+  --input: #2a2a2a; /* Input background */
+  --ring: #d4af37; /* Gold ring */
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-accent: #d4af37;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #333333;
+  --sidebar-ring: #d4af37;
+
+  /* Animation timing */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+
+  /* Typography - Playfair Display for headlines */
+  h1 {
+    font-family: var(--font-display);
+    @apply text-4xl md:text-5xl font-bold tracking-tight;
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+  }
+
+  h3 {
+    font-family: var(--font-display);
+    @apply text-2xl md:text-3xl font-bold tracking-tight;
+  }
+
+  h4 {
+    font-family: var(--font-display);
+    @apply text-xl md:text-2xl font-bold;
+  }
+
+  h5 {
+    font-family: var(--font-display);
+    @apply text-lg font-bold;
+  }
+
+  h6 {
+    font-family: var(--font-display);
+    @apply text-base font-bold uppercase tracking-widest;
+  }
+
+  p {
+    font-family: var(--font-body);
+    @apply text-base leading-relaxed;
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Remove default focus outline, we use ring instead */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /**
+   * Custom container utility that centers content and adds responsive padding.
+   * Luxury Watch Portfolio specific: asymmetric layout support
+   */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+
+  /* Glassmorphism effect */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-lg;
+  }
+
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-md border border-white/10 rounded-lg;
+  }
+
+  /* Cinematic text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent;
+  }
+
+  /* Luxury shadow */
+  .shadow-luxury {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  }
+
+  .shadow-luxury-lg {
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+  }
+
+  /* Gold divider line */
+  .divider-gold {
+    @apply h-px bg-gradient-to-r from-transparent via-accent to-transparent;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .transition-smooth-lg {
+    transition: all 500ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* Hover lift effect */
+  .hover-lift {
+    transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .hover-lift:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    transform: translateY(-8px);
+  }
+
+  /* Focus states */
+  .focus-gold {
+    @apply focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+/* Import Google Fonts for Playfair Display and Inter */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+@layer base {
+  :root {
+    --font-display: "Playfair Display", serif;
+    --font-body: "Inter", sans-serif;
+  }
+
+  @supports (font-variation-settings: normal) {
+    :root {
+      --font-display: "Playfair Display", serif;
+      --font-body: "Inter", sans-serif;
+    }
+  }
+}
+
+/* Font family utilities - inline CSS only */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Animation utilities */
+@layer utilities {
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .animate-fadeInDown {
+    animation: fadeInDown 0.6s ease-out forwards;
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 1000px 100%;
+  }
+}
+
+/* Reduce motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
