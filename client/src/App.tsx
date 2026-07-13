@@ -8,6 +8,7 @@ import { CollectionProvider } from "./contexts/CollectionContext";
 import Home from "./pages/Home";
 import Gallery from "./pages/Gallery";
 import AddWatch from "./pages/AddWatch";
+import EditWatch from "./pages/EditWatch";
 import WatchDetail from "./pages/WatchDetail";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
@@ -21,6 +22,7 @@ function Router() {
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/gallery"} component={Gallery} />
       <Route path={"/add"} component={AddWatch} />
+      <Route path={"/edit/:id"} component={EditWatch} />
       <Route path={"/watch/:id"} component={WatchDetail} />
       <Route path={"/analytics"} component={Analytics} />
       <Route path={"/settings"} component={Settings} />

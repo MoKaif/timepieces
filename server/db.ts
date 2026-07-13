@@ -67,10 +67,14 @@ export async function initializeDatabase() {
   `);
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function normalizeWatchPayload(input: Record<string, any> = {}): WatchRecord {
   const now = new Date().toISOString();
   return {
-    id: input.id || randomUUID(),
+    // The id column is a UUID; ignore any client-supplied id that isn't one
+    // (e.g. legacy nanoid ids from an old export) and mint a fresh UUID.
+    id: typeof input.id === "string" && UUID_RE.test(input.id) ? input.id : randomUUID(),
     name: input.name || "",
     brand: input.brand || "",
     model: input.model || "",
@@ -211,7 +215,7 @@ export async function clearAllWatches(): Promise<void> {
 
 export async function getSettings(): Promise<SettingsRecord> {
   const result = await pool.query("SELECT key, value FROM settings");
-  const settings = result.rows.reduce<Record<string, any>>((acc, row) => {
+  const settings = result.rows.reduce<Record<string, any>>((acc: Record<string, any>, row: { key: string; value: any }) => {
     acc[row.key] = row.value;
     return acc;
   }, {});

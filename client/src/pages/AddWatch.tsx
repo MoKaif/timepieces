@@ -1,6 +1,5 @@
 /**
- * Add Watch Page
- * Form to add a new watch to the collection
+ * Add Watch — enter a new piece into the register.
  */
 
 import React, { useState } from "react";
@@ -21,40 +20,29 @@ export default function AddWatch() {
     setIsLoading(true);
     try {
       await addWatch(data);
-      toast.success("Watch added successfully!");
+      toast.success("Watch added to the register");
       setLocation("/gallery");
     } catch (error) {
-      toast.error("Failed to add watch. Please try again.");
+      toast.error("Couldn't save the watch. Is the server running?");
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setLocation("/gallery");
-  };
-
   return (
     <Layout currentPage="add">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-background via-background to-card py-16 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -mr-48 -mt-48" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -ml-48 -mb-48" />
-
-        <div className="container max-w-4xl mx-auto px-4 relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" as const }}>
-            <h1 className="text-5xl md:text-6xl font-display font-bold mb-4">Add a Watch</h1>
-            <p className="text-xl text-muted-foreground">Expand your collection with a new timepiece</p>
-          </motion.div>
-        </div>
+      <section className="container max-w-4xl mx-auto px-4 pt-10 pb-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <p className="eyebrow mb-4">New entry</p>
+          <h1 className="text-4xl md:text-5xl">Add a watch</h1>
+          <p className="text-muted-foreground mt-3">Record the piece, its specifications, and what it's worth.</p>
+        </motion.div>
+        <div className="minute-track mt-8" />
       </section>
 
-      {/* Form Section */}
-      <div className="container max-w-4xl mx-auto px-4 py-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" as const }}>
-          <WatchForm onSubmit={handleSubmit} onCancel={handleCancel} isLoading={isLoading} />
-        </motion.div>
+      <div className="container max-w-4xl mx-auto px-4 pb-16">
+        <WatchForm onSubmit={handleSubmit} onCancel={() => setLocation("/gallery")} isLoading={isLoading} />
       </div>
     </Layout>
   );

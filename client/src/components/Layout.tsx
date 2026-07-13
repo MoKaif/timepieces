@@ -1,29 +1,54 @@
 /**
- * Main Layout Component
- * Cinematic Luxury Design: Dark background with gold accents, minimal navigation
+ * Main Layout — Midnight Dial
+ * Fixed header with a dial brandmark, minute-track underline nav, and a footer
+ * that reports the live collection register.
  */
 
-import React, { useState, useEffect } from "react";
-import { Link } from "wouter";
-import { Menu, X, Download, Upload, Settings } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useLocation } from "wouter";
+import { Menu, X, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollection } from "@/contexts/CollectionContext";
+import { formatCompactINR } from "@/lib/format";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
   currentPage?: "dashboard" | "gallery" | "add" | "analytics" | "settings";
 }
 
+/** Minimal watch-dial brandmark. */
+function DialMark({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" className={className} fill="none" aria-hidden="true">
+      <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <circle cx="20" cy="20" r="13.5" stroke="currentColor" strokeWidth="0.75" opacity="0.35" />
+      {/* hour indices */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i * 30 * Math.PI) / 180;
+        const r1 = i % 3 === 0 ? 10.5 : 12;
+        const x1 = 20 + Math.sin(a) * r1;
+        const y1 = 20 - Math.cos(a) * r1;
+        const x2 = 20 + Math.sin(a) * 13;
+        const y2 = 20 - Math.cos(a) * 13;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth={i % 3 === 0 ? 1.4 : 0.8} />;
+      })}
+      {/* hands */}
+      <line x1="20" y1="20" x2="20" y2="11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="20" y1="20" x2="27" y2="23" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="20" cy="20" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function Layout({ children, currentPage }: LayoutProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { stats } = useCollection();
+  const { stats, exportData, importData } = useCollection();
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 24);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -32,164 +57,165 @@ export function Layout({ children, currentPage }: LayoutProps) {
     { label: "Dashboard", href: "/", page: "dashboard" },
     { label: "Gallery", href: "/gallery", page: "gallery" },
     { label: "Analytics", href: "/analytics", page: "analytics" },
-    { label: "Add Watch", href: "/add", page: "add" },
+    { label: "Add", href: "/add", page: "add" },
     { label: "Settings", href: "/settings", page: "settings" },
   ];
 
+  const handleExport = async () => {
+    try {
+      await exportData();
+      toast.success("Collection exported");
+    } catch {
+      toast.error("Could not export the collection");
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await importData(file, false);
+      toast.success("Collection imported");
+    } catch {
+      toast.error("Could not read that file. Export a collection to see the format.");
+    } finally {
+      if (importInputRef.current) importInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "bg-background/95 backdrop-blur-md border-b border-border shadow-lg" : "bg-transparent"
+          isScrolled ? "bg-background/92 backdrop-blur-md border-b border-border" : "bg-transparent border-b border-transparent"
         }`}
       >
-        <div className="container max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          {/* Logo */}
+        <div className="container max-w-7xl mx-auto flex items-center justify-between py-4">
           <Link href="/">
             <a className="flex items-center gap-3 group cursor-pointer">
-              {/* Crown Logo - Luxe Gold */}
-              <div className="w-10 h-10 flex items-center justify-center">
-                <svg
-                  viewBox="0 0 40 40"
-                  className="w-full h-full text-accent group-hover:text-white transition-colors duration-300"
-                  fill="currentColor"
-                >
-                  {/* Crown symbol */}
-                  <path d="M8 24h24v2H8z" />
-                  <path d="M10 14l6 8h8l6-8M14 10l4 6M26 10l-4 6M20 6l3 6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-lg font-display font-bold text-white">Horological</h1>
-                <p className="text-xs text-muted-foreground">Collection Portfolio</p>
+              <DialMark className="w-9 h-9 text-primary transition-colors group-hover:text-[color-mix(in_srgb,var(--primary)_70%,white)]" />
+              <div className="leading-none">
+                <h1 className="text-xl font-display font-semibold tracking-tight text-foreground">Timepieces</h1>
+                <p className="eyebrow mt-1">Collection Register</p>
               </div>
             </a>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {menuItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className={`px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium ${
-                    currentPage === item.page
-                      ? "bg-accent text-accent-foreground"
-                      : "text-foreground hover:bg-accent/20 hover:text-accent"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              </Link>
-            ))}
-          </nav>
+            {menuItems.map((item) => {
+              const active = currentPage === item.page;
+              return (
+                <Link key={item.href} href={item.href}>
+                  <a
+                    className={`relative px-3.5 py-2 text-sm transition-colors ${
+                      active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                    {active && <span className="absolute left-3.5 right-3.5 -bottom-0.5 h-px bg-primary" />}
+                  </a>
+                </Link>
+              );
+            })}
 
-          {/* Quick Actions */}
-          <div className="hidden md:flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              title="Export Collection"
-              className="text-muted-foreground hover:text-accent"
-            >
+            <span className="mx-2 h-5 w-px bg-border" />
+
+            <Button variant="ghost" size="sm" title="Export collection" onClick={handleExport} className="text-muted-foreground hover:text-primary">
               <Download className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              title="Import Collection"
-              className="text-muted-foreground hover:text-accent"
+              title="Import collection"
+              onClick={() => importInputRef.current?.click()}
+              className="text-muted-foreground hover:text-primary"
             >
               <Upload className="w-4 h-4" />
             </Button>
-          </div>
+          </nav>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-foreground hover:text-accent transition-colors"
+            className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="md:hidden bg-card border-t border-border">
-            <div className="container max-w-7xl mx-auto px-4 py-4 space-y-2">
+            <div className="container max-w-7xl mx-auto py-4 space-y-1">
               {menuItems.map((item) => (
                 <Link key={item.href} href={item.href}>
                   <a
                     onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium ${
-                      currentPage === item.page
-                        ? "bg-accent text-accent-foreground"
-                        : "text-foreground hover:bg-accent/20 hover:text-accent"
+                    className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                      currentPage === item.page ? "bg-primary/15 text-primary" : "text-foreground hover:bg-secondary"
                     }`}
                   >
                     {item.label}
                   </a>
                 </Link>
               ))}
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" size="sm" onClick={handleExport} className="flex-1">
+                  <Download className="w-4 h-4 mr-2" /> Export
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => importInputRef.current?.click()} className="flex-1">
+                  <Upload className="w-4 h-4 mr-2" /> Import
+                </Button>
+              </div>
             </div>
           </nav>
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="pt-20">
-        {children}
-      </main>
+      <input ref={importInputRef} type="file" accept=".json,application/json" onChange={handleImportFile} className="hidden" />
 
-      {/* Footer */}
-      <footer className="bg-card border-t border-border mt-20">
-        <div className="container max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* About */}
+      <main className="pt-20">{children}</main>
+
+      <footer className="border-t border-border mt-24">
+        <div className="container max-w-7xl mx-auto py-14">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-widest text-accent mb-4">About</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                A premium collection management platform for horological enthusiasts. Track, analyze, and showcase your timepiece investments.
+              <div className="flex items-center gap-2 mb-4">
+                <DialMark className="w-5 h-5 text-primary" />
+                <span className="font-display text-lg font-semibold">Timepieces</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                A private register for a watch collection — track each piece, its valuation, and how the collection moves over time.
               </p>
             </div>
 
-            {/* Quick Stats */}
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-widest text-accent mb-4">Collection</h3>
+              <p className="eyebrow mb-4">The Register</p>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>
-                  <span className="text-accent font-semibold">{stats.totalWatches}</span> Watches
+                <p className="flex justify-between max-w-[14rem]">
+                  <span>Pieces</span>
+                  <span className="num text-foreground">{stats.totalWatches}</span>
                 </p>
-                <p>
-                  <span className="text-accent font-semibold">₹{(stats.totalValue / 1000).toFixed(0)}K</span> Total Value
+                <p className="flex justify-between max-w-[14rem]">
+                  <span>Portfolio value</span>
+                  <span className="num text-foreground">{formatCompactINR(stats.totalValue)}</span>
                 </p>
-                <p>
-                  <span className="text-accent font-semibold">₹{(stats.averageValue / 1000).toFixed(0)}K</span> Average Value
+                <p className="flex justify-between max-w-[14rem]">
+                  <span>Average piece</span>
+                  <span className="num text-foreground">{formatCompactINR(stats.averageValue)}</span>
                 </p>
               </div>
             </div>
 
-            {/* Features */}
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-widest text-accent mb-4">Features</h3>
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>• Local Data Storage</li>
-                <li>• Advanced Analytics</li>
-                <li>• Import/Export</li>
-                <li>• Responsive Design</li>
-              </ul>
+              <p className="eyebrow mb-4">Stored</p>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+                Your collection lives in your own PostgreSQL database via the app's API — not the browser. Export any time to a JSON backup.
+              </p>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="divider-gold my-8" />
-
-          {/* Copyright */}
-          <div className="text-center text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} Horological Collection Portfolio. All rights reserved.</p>
-            <p className="mt-2">Crafted with precision and passion for watch collectors.</p>
-          </div>
+          <div className="minute-track mb-6" />
+          <div className="text-center eyebrow">© {new Date().getFullYear()} Timepieces · Kept with precision</div>
         </div>
       </footer>
     </div>

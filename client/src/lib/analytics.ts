@@ -4,6 +4,7 @@
  */
 
 import { Watch, CollectionStats, CollectionSnapshot } from "@/types";
+import { formatCompactINR } from "@/lib/format";
 
 /**
  * Calculate collection statistics
@@ -230,24 +231,28 @@ export function getCollectionInsights(watches: Watch[]) {
 
   // Brand concentration
   const topBrand = Object.entries(stats.brandDistribution).sort((a, b) => b[1] - a[1])[0];
-  if (topBrand && topBrand[1] > stats.totalWatches * 0.4) {
-    insights.push(`Your collection is ${topBrand[1]} watches from ${topBrand[0]}. Consider diversifying.`);
+  if (topBrand && stats.totalWatches >= 3 && topBrand[1] > stats.totalWatches * 0.4) {
+    insights.push(`${topBrand[1]} of ${stats.totalWatches} pieces are ${topBrand[0]} — the collection leans heavily one way.`);
   }
 
-  // Appreciation
-  if (stats.totalAppreciation > stats.totalValue * 0.1) {
-    insights.push(`Excellent! Your collection has appreciated by ₹${Math.round(stats.totalAppreciation)}.`);
+  // Net movement
+  const net = stats.totalAppreciation - stats.totalDepreciation;
+  if (net > 0 && net > stats.totalValue * 0.05) {
+    insights.push(`The collection is up ${formatCompactINR(net)} against what you paid.`);
+  } else if (net < 0) {
+    insights.push(`The collection is down ${formatCompactINR(Math.abs(net))} against what you paid.`);
   }
 
-  // Average value
-  if (stats.averageValue > 10000) {
-    insights.push("Your collection features premium timepieces with strong average value.");
+  // The standout piece
+  if (stats.mostValuableWatch) {
+    const w = stats.mostValuableWatch;
+    insights.push(`${w.brand} ${w.model} is your most valuable piece at ${formatCompactINR(w.currentMarketValue)}.`);
   }
 
   // Movement diversity
   const movements = new Set(watches.map((w) => w.movementType));
-  if (movements.size === 1) {
-    insights.push(`Consider exploring different movement types beyond ${Array.from(movements)[0]}.`);
+  if (stats.totalWatches >= 3 && movements.size === 1) {
+    insights.push(`Every piece is ${Array.from(movements)[0]} — room to explore other movements.`);
   }
 
   return insights;

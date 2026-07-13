@@ -1,31 +1,24 @@
 /**
- * Gallery Page - Collection Display
- * Shows all watches with filtering, sorting, and search capabilities
+ * Gallery — every piece, searchable and sortable.
  */
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, ArrowUpDown } from "lucide-react";
+import { Search, SlidersHorizontal, Plus } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { WatchCard } from "@/components/WatchCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCollection } from "@/contexts/CollectionContext";
 import { Link } from "wouter";
 
 export default function Gallery() {
-  const { watches, filteredWatches, searchFilters, setSearchFilters, toggleFavorite, toggleWishlist, isLoading } = useCollection();
+  const { watches, filteredWatches, searchFilters, setSearchFilters, resetSearchFilters, toggleFavorite, toggleWishlist, isLoading } =
+    useCollection();
   const [showFilters, setShowFilters] = useState(false);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchFilters({ query: e.target.value });
-  };
-
-  const handleSortChange = (value: string) => {
-    setSearchFilters({ sortBy: value as any });
-  };
+  const uniqueBrands = Array.from(new Set(watches.map((w) => w.brand).filter(Boolean))).sort();
 
   const handleBrandFilter = (brand: string) => {
     setSearchFilters({
@@ -35,16 +28,11 @@ export default function Gallery() {
     });
   };
 
-  const uniqueBrands = Array.from(new Set(watches.map((w) => w.brand))).sort();
-
   if (isLoading) {
     return (
       <Layout currentPage="gallery">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading gallery...</p>
-          </div>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </Layout>
     );
@@ -52,146 +40,116 @@ export default function Gallery() {
 
   return (
     <Layout currentPage="gallery">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-background via-background to-card py-16 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -mr-48 -mt-48" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -ml-48 -mb-48" />
-
-        <div className="container max-w-7xl mx-auto px-4 relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" as const }}>
-            <h1 className="text-5xl md:text-6xl font-display font-bold mb-4">Your Collection</h1>
-            <p className="text-xl text-muted-foreground">
-              {watches.length === 0 ? "No watches yet. Start building your collection." : `${watches.length} timepiece${watches.length !== 1 ? "s" : ""} in your collection`}
+      <section className="container max-w-7xl mx-auto px-4 pt-10 pb-6">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <p className="eyebrow mb-4">Gallery</p>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h1 className="text-4xl md:text-5xl">The collection</h1>
+            <p className="num text-sm text-muted-foreground pb-2">
+              {watches.length} piece{watches.length !== 1 ? "s" : ""}
             </p>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </section>
 
-      {/* Controls Section */}
-      <div className="container max-w-7xl mx-auto px-4 py-8 border-b border-border">
+      {/* Controls */}
+      <div className="container max-w-7xl mx-auto px-4 pb-2">
         <div className="space-y-4">
-          {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by brand, model, or reference number..."
+              placeholder="Search brand, model, or reference…"
               value={searchFilters.query}
-              onChange={handleSearchChange}
-              className="pl-12 bg-card border-border h-12"
+              onChange={(e) => setSearchFilters({ query: e.target.value })}
+              className="pl-11 bg-card border-border h-12"
             />
           </div>
 
-          {/* Sort & Filter Controls */}
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex gap-2">
-              <Button
-                variant={showFilters ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className={showFilters ? "bg-accent text-accent-foreground" : ""}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? "border-primary/60 text-primary" : "border-border"}
+            >
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              Filters{searchFilters.brands.length > 0 ? ` · ${searchFilters.brands.length}` : ""}
+            </Button>
 
             <div className="flex gap-2 items-center">
-              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-              <Select value={searchFilters.sortBy} onValueChange={handleSortChange}>
+              <span className="eyebrow hidden sm:inline">Sort</span>
+              <Select value={searchFilters.sortBy} onValueChange={(v) => setSearchFilters({ sortBy: v as any })}>
                 <SelectTrigger className="w-48 bg-card border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest Added</SelectItem>
-                  <SelectItem value="oldest">Oldest Added</SelectItem>
-                  <SelectItem value="highest-value">Highest Value</SelectItem>
-                  <SelectItem value="lowest-value">Lowest Value</SelectItem>
+                  <SelectItem value="newest">Newest added</SelectItem>
+                  <SelectItem value="oldest">Oldest added</SelectItem>
+                  <SelectItem value="highest-value">Highest value</SelectItem>
+                  <SelectItem value="lowest-value">Lowest value</SelectItem>
                   <SelectItem value="alphabetical">Alphabetical</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Brand Filters */}
-          {showFilters && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold mb-3">Filter by Brand</p>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueBrands.map((brand) => (
-                    <button
-                      key={brand}
-                      onClick={() => handleBrandFilter(brand)}
-                      className={`px-3 py-1 rounded-full text-sm transition-all ${
-                        searchFilters.brands.includes(brand)
-                          ? "bg-accent text-accent-foreground"
-                          : "bg-card border border-border text-foreground hover:border-accent"
-                      }`}
-                    >
-                      {brand}
-                    </button>
-                  ))}
-                </div>
+          {showFilters && uniqueBrands.length > 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-1">
+              <p className="eyebrow mb-3">Filter by brand</p>
+              <div className="flex flex-wrap gap-2">
+                {uniqueBrands.map((brand) => (
+                  <button
+                    key={brand}
+                    onClick={() => handleBrandFilter(brand)}
+                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      searchFilters.brands.includes(brand)
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border text-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {brand}
+                  </button>
+                ))}
               </div>
             </motion.div>
           )}
         </div>
+        <div className="minute-track mt-6" />
       </div>
 
-      {/* Gallery Grid */}
-      <div className="container max-w-7xl mx-auto px-4 py-16">
+      {/* Grid */}
+      <div className="container max-w-7xl mx-auto px-4 py-10">
         {watches.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" as const }}
-            className="text-center py-20"
-          >
-            <h2 className="text-3xl font-display font-bold mb-4">No Watches Yet</h2>
-            <p className="text-muted-foreground mb-8">Start your collection by adding your first timepiece.</p>
+          <div className="text-center py-24">
+            <p className="eyebrow mb-4">Empty register</p>
+            <h2 className="text-3xl mb-4">No pieces yet</h2>
+            <p className="text-muted-foreground mb-8">Add your first timepiece to start the collection.</p>
             <Link href="/add">
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90">Add Your First Watch</Button>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" /> Add a watch
+              </Button>
             </Link>
-          </motion.div>
-        ) : filteredWatches.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" as const }}
-            className="text-center py-20"
-          >
-            <h2 className="text-2xl font-display font-bold mb-4">No Watches Found</h2>
-            <p className="text-muted-foreground mb-8">Try adjusting your search or filters.</p>
-            <Button variant="outline" onClick={() => setSearchFilters({ query: "", brands: [] })}>
-              Clear Filters
-            </Button>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" as const }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {filteredWatches.map((watch) => (
-              <WatchCard
-                key={watch.id}
-                watch={watch}
-                onFavoriteToggle={toggleFavorite}
-                onWishlistToggle={toggleWishlist}
-              />
-            ))}
-          </motion.div>
-        )}
-
-        {/* Results Info */}
-        {filteredWatches.length > 0 && (
-          <div className="mt-12 text-center text-muted-foreground">
-            <p>
-              Showing {filteredWatches.length} of {watches.length} watch{watches.length !== 1 ? "es" : ""}
-            </p>
           </div>
+        ) : filteredWatches.length === 0 ? (
+          <div className="text-center py-24">
+            <h2 className="text-2xl mb-4">Nothing matches</h2>
+            <p className="text-muted-foreground mb-8">Try a different search or clear the filters.</p>
+            <Button variant="outline" onClick={resetSearchFilters}>
+              Clear filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredWatches.map((watch) => (
+                <WatchCard key={watch.id} watch={watch} onFavoriteToggle={toggleFavorite} onWishlistToggle={toggleWishlist} />
+              ))}
+            </div>
+            <p className="num text-center text-sm text-muted-foreground mt-10">
+              {filteredWatches.length} of {watches.length}
+            </p>
+          </>
         )}
       </div>
     </Layout>

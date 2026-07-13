@@ -1,5 +1,6 @@
 import express from "express";
 import { createServer } from "http";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
@@ -112,17 +113,42 @@ async function startServer() {
     }
   });
 
-  const staticPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist", "public");
+  const isProduction = process.env.NODE_ENV === "production";
 
-  app.use(express.static(staticPath));
+  if (isProduction) {
+    // Production: serve the pre-built client bundle.
+    const staticPath = path.resolve(__dirname, "public");
+    app.use(express.static(staticPath));
+    app.use((req, res, next) => {
+      if (req.method !== "GET" || req.path.startsWith("/api/") || req.path === "/health") return next();
+      res.sendFile(path.join(staticPath, "index.html"));
+    });
+  } else {
+    // Development: mount Vite in middleware mode so a single process serves
+    // both the API and the client (with HMR) on one port. No proxy needed.
+    const { createServer: createViteServer } = await import("vite");
+    const clientRoot = path.resolve(__dirname, "..", "client");
+    const vite = await createViteServer({
+      configFile: path.resolve(__dirname, "..", "vite.config.ts"),
+      appType: "custom",
+      server: { middlewareMode: true, hmr: { server } },
+    });
 
-  app.get("/*", (req, res, next) => {
-    if (req.path.startsWith("/api/") || req.path === "/health") return next();
-    res.sendFile(path.join(staticPath, "index.html"));
-  });
+    app.use(vite.middlewares);
+    app.use(async (req, res, next) => {
+      if (req.method !== "GET" || req.path.startsWith("/api/") || req.path === "/health") return next();
+      try {
+        const template = await vite.transformIndexHtml(
+          req.originalUrl,
+          fs.readFileSync(path.join(clientRoot, "index.html"), "utf-8")
+        );
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (error) {
+        vite.ssrFixStacktrace(error as Error);
+        next(error);
+      }
+    });
+  }
 
   const port = process.env.PORT || 3000;
 

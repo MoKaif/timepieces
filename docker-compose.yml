@@ -5,8 +5,10 @@ services:
       POSTGRES_DB: timepieces
       POSTGRES_USER: timepieces
       POSTGRES_PASSWORD: timepieces
+    # Host port 5433 → container 5432 (avoids clashing with a local Postgres on 5432).
+    # The app connects internally via db:5432, so this mapping is only for host tools.
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,7 +30,7 @@ services:
       PORT: 3000
     ports:
       - "${TIMEPIECES_PORT:-3002}:3000"
-    command: sh -c "corepack enable && pnpm install --no-frozen-lockfile && pnpm dev --host"
+    command: sh -c "corepack enable && pnpm install --no-frozen-lockfile && pnpm dev"
     volumes:
       - ./:/app
     working_dir: /app

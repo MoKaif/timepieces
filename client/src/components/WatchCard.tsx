@@ -1,14 +1,13 @@
 /**
- * Watch Card Component
- * Displays a single watch with hover effects and interactions
+ * Watch Card — a dial plate in the gallery grid.
  */
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, Eye, Bookmark } from "lucide-react";
+import { Heart, Bookmark } from "lucide-react";
 import { Watch } from "@/types";
-import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { formatCompactINR, formatPercentChange } from "@/lib/format";
 
 interface WatchCardProps {
   watch: Watch;
@@ -19,132 +18,101 @@ interface WatchCardProps {
 export function WatchCard({ watch, onFavoriteToggle, onWishlistToggle }: WatchCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const appreciation = watch.currentMarketValue - watch.purchasePrice;
-  const appreciationPercent = ((appreciation / watch.purchasePrice) * 100).toFixed(1);
+  const pct = formatPercentChange(watch.purchasePrice, watch.currentMarketValue);
+  const up = appreciation > 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" as const }}
+      transition={{ duration: 0.4, ease: "easeOut" as const }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="group"
     >
       <Link href={`/watch/${watch.id}`}>
         <a className="block cursor-pointer">
-          <div className="relative overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 hover:shadow-luxury">
-            {/* Hero Image */}
-            <div className="relative h-64 overflow-hidden bg-muted">
+          <div className="hover-lift overflow-hidden rounded-lg bg-card border border-border">
+            <div className="relative h-64 overflow-hidden bg-secondary">
               {watch.heroImageUrl ? (
                 <motion.img
                   src={watch.heroImageUrl}
                   alt={`${watch.brand} ${watch.model}`}
                   className="w-full h-full object-cover"
-                  animate={{ scale: isHovered ? 1.05 : 1 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  animate={{ scale: isHovered ? 1.04 : 1 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground">No Image</div>
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="eyebrow">No image</span>
+                </div>
               )}
 
-              {/* Overlay on Hover */}
-              {isHovered && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end p-4"
-                >
-                  <div className="w-full">
-                    <Link href={`/watch/${watch.id}`}>
-                      <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-              {/* Brand Logo Badge */}
               {watch.brandLogoUrl && (
-                <div className="absolute top-4 left-4 w-12 h-12 bg-white/10 backdrop-blur-md rounded-lg p-2 border border-white/20">
+                <div className="absolute top-3 left-3 w-11 h-11 bg-background/50 backdrop-blur-md rounded-md p-1.5 border border-border">
                   <img src={watch.brandLogoUrl} alt={watch.brand} className="w-full h-full object-contain" />
                 </div>
               )}
 
-              {/* Favorite Button */}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  onFavoriteToggle(watch.id);
-                }}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-accent/30 transition-colors"
-              >
-                <Heart className={`w-5 h-5 ${watch.isFavorite ? "fill-accent text-accent" : "text-white"}`} />
-              </button>
+              <div className="absolute top-3 right-3 flex gap-1.5">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onWishlistToggle(watch.id);
+                  }}
+                  aria-label="Toggle wishlist"
+                  className="p-2 rounded-full bg-background/50 backdrop-blur-md border border-border hover:border-primary/60 transition-colors"
+                >
+                  <Bookmark className={`w-4 h-4 ${watch.isInWishlist ? "fill-primary text-primary" : "text-foreground"}`} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onFavoriteToggle(watch.id);
+                  }}
+                  aria-label="Toggle favorite"
+                  className="p-2 rounded-full bg-background/50 backdrop-blur-md border border-border hover:border-primary/60 transition-colors"
+                >
+                  <Heart className={`w-4 h-4 ${watch.isFavorite ? "fill-primary text-primary" : "text-foreground"}`} />
+                </button>
+              </div>
 
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  onWishlistToggle(watch.id);
-                }}
-                className="absolute top-4 right-16 p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-accent/30 transition-colors"
-              >
-                <Bookmark className={`w-5 h-5 ${watch.isInWishlist ? "fill-accent text-accent" : "text-white"}`} />
-              </button>
-
-              {/* Appreciation Badge */}
-              {appreciation !== 0 && (
+              {pct && (
                 <div
-                  className={`absolute bottom-4 left-4 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border ${
-                    appreciation > 0
-                      ? "bg-green-500/20 text-green-300 border-green-500/30"
-                      : "bg-red-500/20 text-red-300 border-red-500/30"
+                  className={`absolute bottom-3 left-3 num px-2.5 py-1 rounded-full text-xs font-medium bg-background/60 backdrop-blur-md border ${
+                    up ? "text-positive border-positive/30" : "text-destructive border-destructive/30"
                   }`}
                 >
-                  {appreciation > 0 ? "+" : ""}{appreciationPercent}%
+                  {pct}
                 </div>
               )}
             </div>
 
-            {/* Card Content */}
             <div className="p-4">
-              {/* Brand & Model */}
-              <div className="mb-3">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">{watch.brand}</p>
-                <h3 className="text-lg font-display font-bold text-white truncate">{watch.model}</h3>
-              </div>
+              <p className="eyebrow">{watch.brand}</p>
+              <h3 className="text-lg font-display font-semibold text-foreground truncate mt-1">{watch.model || watch.name}</h3>
 
-              {/* Specifications */}
-              <div className="grid grid-cols-2 gap-2 mb-4 text-xs text-muted-foreground">
+              <div className="grid grid-cols-2 gap-2 mt-3 mb-4 text-xs">
                 <div>
                   <p className="text-muted-foreground">Movement</p>
-                  <p className="text-white capitalize">{watch.movementType}</p>
+                  <p className="text-foreground capitalize">{watch.movementType}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Case Size</p>
-                  <p className="text-white">{watch.caseSize}mm</p>
+                  <p className="text-muted-foreground">Case</p>
+                  <p className="text-foreground num">{watch.caseSize}mm</p>
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div className="space-y-2 pt-4 border-t border-border">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Current Value</span>
-                  <span className="text-lg font-bold text-accent">₹{(watch.currentMarketValue / 100000).toFixed(1)}L</span>
+              <div className="flex items-end justify-between pt-3 border-t border-border">
+                <div>
+                  <p className="text-xs text-muted-foreground">Current value</p>
+                  <p className="num text-lg font-semibold text-primary">{formatCompactINR(watch.currentMarketValue)}</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Purchase Price</span>
-                  <span className="text-sm text-muted-foreground">₹{(watch.purchasePrice / 100000).toFixed(1)}L</span>
-                </div>
-              </div>
-
-              {/* Collection Percentage */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground">Collection Share</span>
-                  <span className="text-xs font-semibold text-accent">View Details</span>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Paid</p>
+                  <p className="num text-sm text-muted-foreground">{formatCompactINR(watch.purchasePrice)}</p>
                 </div>
               </div>
             </div>

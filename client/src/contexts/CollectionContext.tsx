@@ -5,9 +5,18 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Watch, CollectionSettings, CollectionStats, SearchFilters } from "@/types";
-import { getWatches, saveWatch, deleteWatch, getSettings, updateSettings, exportCollection, importCollection } from "@/lib/storage";
+import {
+  getWatches,
+  createWatch,
+  updateWatch,
+  deleteWatch,
+  clearAllData,
+  getSettings,
+  updateSettings,
+  exportCollection,
+  importCollection,
+} from "@/lib/storage";
 import { calculateStats } from "@/lib/analytics";
-import { nanoid } from "nanoid";
 
 interface CollectionContextType {
   // State
@@ -38,8 +47,9 @@ interface CollectionContextType {
   updateCollectionSettings: (settings: Partial<CollectionSettings>) => void;
 
   // Import/Export
-  exportData: () => void;
+  exportData: () => Promise<void>;
   importData: (file: File, overwrite: boolean) => Promise<void>;
+  clearCollection: () => Promise<void>;
 
   // Refresh
   refreshCollection: () => void;
@@ -138,20 +148,10 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
   // Watch operations
   const addWatch = useCallback(
     async (watchData: Omit<Watch, "id" | "createdAt" | "updatedAt" | "isFavorite" | "isInWishlist">) => {
-      const id = nanoid();
-      const now = new Date().toISOString();
-      const newWatch: Watch = {
-        ...watchData,
-        id,
-        createdAt: now,
-        updatedAt: now,
-        isFavorite: false,
-        isInWishlist: false,
-      };
-
-      await saveWatch(newWatch);
-      setWatches((prev) => [...prev, newWatch]);
-      return id;
+      // The server mints the id and timestamps and returns the saved record.
+      const created = await createWatch(watchData);
+      setWatches((prev) => [created, ...prev]);
+      return created.id;
     },
     []
   );
@@ -161,14 +161,8 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
       const watch = watches.find((w) => w.id === watchId);
       if (!watch) return;
 
-      const updated = {
-        ...watch,
-        ...watchData,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await saveWatch(updated);
-      setWatches((prev) => prev.map((w) => (w.id === watchId ? updated : w)));
+      const saved = await updateWatch({ ...watch, ...watchData });
+      setWatches((prev) => prev.map((w) => (w.id === watchId ? saved : w)));
     },
     [watches]
   );
@@ -233,8 +227,8 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   // Import/Export
-  const exportData = useCallback(() => {
-    const data = exportCollection();
+  const exportData = useCallback(async () => {
+    const data = await exportCollection();
     const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
@@ -243,6 +237,11 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     link.download = `watch-collection-${new Date().toISOString().split("T")[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
+  }, []);
+
+  const clearCollection = useCallback(async () => {
+    await clearAllData();
+    setWatches([]);
   }, []);
 
   const importData = useCallback(
@@ -295,6 +294,7 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     updateCollectionSettings,
     exportData,
     importData,
+    clearCollection,
     refreshCollection,
   };
 
