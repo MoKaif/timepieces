@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-13
+
+### Added
+
+- **Wishlist** — a separate list of watches you want, added by URL (image link +
+  buy/listing link), with an optional approximate price and notes. Wishlist items
+  are kept out of the owned collection: they don't affect portfolio value, the
+  dashboard, or analytics. Each card links out to the listing, and an "I bought
+  this" action moves it into the collection to fill in purchase details.
+
+### Fixed
+
+- The hero image upload button did nothing — its hidden file input was never
+  rendered. Uploading the main watch photo now works.
+- Raised the API request body limit (5mb → 25mb) so base64 image uploads aren't
+  rejected as too large.
+
 ## [1.1.0] - 2026-07-13
 
 ### Fixed

@@ -3,7 +3,7 @@
  * All reads/writes go through the Express + PostgreSQL backend under /api.
  */
 
-import { Watch, WatchFormData, CollectionSettings, ExportData } from "@/types";
+import { Watch, WatchFormData, WishlistFormData, CollectionSettings, ExportData } from "@/types";
 
 const API_BASE = "/api";
 
@@ -40,6 +40,14 @@ export async function createWatch(data: WatchFormData): Promise<Watch> {
   return request<Watch>("/watches", {
     method: "POST",
     body: JSON.stringify(data),
+  });
+}
+
+/** Create a wishlist entry (a watch flagged isInWishlist) from the lightweight URL form. */
+export async function createWishlistItem(data: WishlistFormData): Promise<Watch> {
+  return request<Watch>("/watches", {
+    method: "POST",
+    body: JSON.stringify({ ...data, isInWishlist: true }),
   });
 }
 

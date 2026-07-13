@@ -139,7 +139,7 @@ export default function Settings() {
           <div className="space-y-4 text-sm">
             <div>
               <p className="font-medium text-foreground mb-1">Timepieces</p>
-              <p className="num text-muted-foreground">Version 1.1.0</p>
+              <p className="num text-muted-foreground">Version 1.2.0</p>
             </div>
             <div>
               <p className="font-medium text-foreground mb-1">Where your data lives</p>

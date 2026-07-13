@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Gallery from "./pages/Gallery";
 import AddWatch from "./pages/AddWatch";
 import EditWatch from "./pages/EditWatch";
+import Wishlist from "./pages/Wishlist";
 import WatchDetail from "./pages/WatchDetail";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
@@ -21,6 +22,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/gallery"} component={Gallery} />
+      <Route path={"/wishlist"} component={Wishlist} />
       <Route path={"/add"} component={AddWatch} />
       <Route path={"/edit/:id"} component={EditWatch} />
       <Route path={"/watch/:id"} component={WatchDetail} />

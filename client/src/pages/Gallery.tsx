@@ -14,11 +14,10 @@ import { useCollection } from "@/contexts/CollectionContext";
 import { Link } from "wouter";
 
 export default function Gallery() {
-  const { watches, filteredWatches, searchFilters, setSearchFilters, resetSearchFilters, toggleFavorite, toggleWishlist, isLoading } =
-    useCollection();
+  const { ownedWatches, filteredWatches, searchFilters, setSearchFilters, resetSearchFilters, toggleFavorite, isLoading } = useCollection();
   const [showFilters, setShowFilters] = useState(false);
 
-  const uniqueBrands = Array.from(new Set(watches.map((w) => w.brand).filter(Boolean))).sort();
+  const uniqueBrands = Array.from(new Set(ownedWatches.map((w) => w.brand).filter(Boolean))).sort();
 
   const handleBrandFilter = (brand: string) => {
     setSearchFilters({
@@ -46,7 +45,7 @@ export default function Gallery() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h1 className="text-4xl md:text-5xl">The collection</h1>
             <p className="num text-sm text-muted-foreground pb-2">
-              {watches.length} piece{watches.length !== 1 ? "s" : ""}
+              {ownedWatches.length} piece{ownedWatches.length !== 1 ? "s" : ""}
             </p>
           </div>
         </motion.div>
@@ -120,7 +119,7 @@ export default function Gallery() {
 
       {/* Grid */}
       <div className="container max-w-7xl mx-auto px-4 py-10">
-        {watches.length === 0 ? (
+        {ownedWatches.length === 0 ? (
           <div className="text-center py-24">
             <p className="eyebrow mb-4">Empty register</p>
             <h2 className="text-3xl mb-4">No pieces yet</h2>
@@ -143,11 +142,11 @@ export default function Gallery() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredWatches.map((watch) => (
-                <WatchCard key={watch.id} watch={watch} onFavoriteToggle={toggleFavorite} onWishlistToggle={toggleWishlist} />
+                <WatchCard key={watch.id} watch={watch} onFavoriteToggle={toggleFavorite} />
               ))}
             </div>
             <p className="num text-center text-sm text-muted-foreground mt-10">
-              {filteredWatches.length} of {watches.length}
+              {filteredWatches.length} of {ownedWatches.length}
             </p>
           </>
         )}

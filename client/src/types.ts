@@ -20,9 +20,21 @@ export interface Watch {
   updatedAt: string;
   isFavorite: boolean;
   isInWishlist: boolean;
+  /** Optional external link (e.g. a listing/shop) — used mainly for wishlist items. */
+  listingUrl: string;
 }
 
 export type WatchFormData = Omit<Watch, "id" | "createdAt" | "updatedAt" | "isFavorite" | "isInWishlist">;
+
+/** Lightweight wishlist entry captured by URL rather than the full watch form. */
+export interface WishlistFormData {
+  brand: string;
+  model: string;
+  heroImageUrl: string;
+  listingUrl: string;
+  currentMarketValue: number;
+  notes: string;
+}
 
 export type SortOrder = "newest" | "oldest" | "highest-value" | "lowest-value" | "alphabetical";
 export type ThemeMode = "dark" | "light";

@@ -4,7 +4,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, Bookmark } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Watch } from "@/types";
 import { Link } from "wouter";
 import { formatCompactINR, formatPercentChange } from "@/lib/format";
@@ -12,10 +12,9 @@ import { formatCompactINR, formatPercentChange } from "@/lib/format";
 interface WatchCardProps {
   watch: Watch;
   onFavoriteToggle: (watchId: string) => void;
-  onWishlistToggle: (watchId: string) => void;
 }
 
-export function WatchCard({ watch, onFavoriteToggle, onWishlistToggle }: WatchCardProps) {
+export function WatchCard({ watch, onFavoriteToggle }: WatchCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const appreciation = watch.currentMarketValue - watch.purchasePrice;
   const pct = formatPercentChange(watch.purchasePrice, watch.currentMarketValue);
@@ -56,28 +55,16 @@ export function WatchCard({ watch, onFavoriteToggle, onWishlistToggle }: WatchCa
                 </div>
               )}
 
-              <div className="absolute top-3 right-3 flex gap-1.5">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onWishlistToggle(watch.id);
-                  }}
-                  aria-label="Toggle wishlist"
-                  className="p-2 rounded-full bg-background/50 backdrop-blur-md border border-border hover:border-primary/60 transition-colors"
-                >
-                  <Bookmark className={`w-4 h-4 ${watch.isInWishlist ? "fill-primary text-primary" : "text-foreground"}`} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onFavoriteToggle(watch.id);
-                  }}
-                  aria-label="Toggle favorite"
-                  className="p-2 rounded-full bg-background/50 backdrop-blur-md border border-border hover:border-primary/60 transition-colors"
-                >
-                  <Heart className={`w-4 h-4 ${watch.isFavorite ? "fill-primary text-primary" : "text-foreground"}`} />
-                </button>
-              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onFavoriteToggle(watch.id);
+                }}
+                aria-label="Toggle favorite"
+                className="absolute top-3 right-3 p-2 rounded-full bg-background/50 backdrop-blur-md border border-border hover:border-primary/60 transition-colors"
+              >
+                <Heart className={`w-4 h-4 ${watch.isFavorite ? "fill-primary text-primary" : "text-foreground"}`} />
+              </button>
 
               {pct && (
                 <div

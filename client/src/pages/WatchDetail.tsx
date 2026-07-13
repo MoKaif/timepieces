@@ -6,7 +6,7 @@
 import React, { useState } from "react";
 import { useRoute, useLocation, Link } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronLeft, Heart, Share2, Pencil, Trash2, ChevronRight, Bookmark } from "lucide-react";
+import { ChevronLeft, Heart, Share2, Pencil, Trash2, ChevronRight } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 export default function WatchDetail() {
   const [match, params] = useRoute("/watch/:id");
   const [, setLocation] = useLocation();
-  const { getWatchById, deleteWatchById, toggleFavorite, toggleWishlist } = useCollection();
+  const { getWatchById, deleteWatchById, toggleFavorite } = useCollection();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   if (!match) return null;
@@ -92,9 +92,6 @@ export default function WatchDetail() {
             <div className="flex gap-1">
               <Button variant="ghost" size="icon" onClick={() => toggleFavorite(watch.id)} className={watch.isFavorite ? "text-primary" : "text-foreground"}>
                 <Heart className={`w-5 h-5 ${watch.isFavorite ? "fill-current" : ""}`} />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => toggleWishlist(watch.id)} className={watch.isInWishlist ? "text-primary" : "text-foreground"}>
-                <Bookmark className={`w-5 h-5 ${watch.isInWishlist ? "fill-current" : ""}`} />
               </Button>
               <Button variant="ghost" size="icon" onClick={handleShare} className="text-foreground">
                 <Share2 className="w-5 h-5" />

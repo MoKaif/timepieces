@@ -4,10 +4,11 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { Watch, CollectionSettings, CollectionStats, SearchFilters } from "@/types";
+import { Watch, WishlistFormData, CollectionSettings, CollectionStats, SearchFilters } from "@/types";
 import {
   getWatches,
   createWatch,
+  createWishlistItem,
   updateWatch,
   deleteWatch,
   clearAllData,
@@ -20,7 +21,9 @@ import { calculateStats } from "@/lib/analytics";
 
 interface CollectionContextType {
   // State
-  watches: Watch[];
+  watches: Watch[]; // everything (owned + wishlist)
+  ownedWatches: Watch[]; // the collection you own — drives stats, gallery, analytics
+  wishlist: Watch[]; // watches you want, added by URL
   stats: CollectionStats;
   settings: CollectionSettings;
   filteredWatches: Watch[];
@@ -33,11 +36,13 @@ interface CollectionContextType {
   deleteWatchById: (watchId: string) => Promise<void>;
   getWatchById: (watchId: string) => Watch | null;
 
-  // Favorite & Wishlist
+  // Favorites
   toggleFavorite: (watchId: string) => void;
-  toggleWishlist: (watchId: string) => void;
   getFavorites: () => Watch[];
-  getWishlist: () => Watch[];
+
+  // Wishlist (separate from the owned collection)
+  addWishlistItem: (data: WishlistFormData) => Promise<string>;
+  moveToCollection: (watchId: string) => Promise<void>;
 
   // Search & Filter
   setSearchFilters: (filters: Partial<SearchFilters>) => void;
@@ -86,12 +91,16 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     loadData();
   }, []);
 
-  // Calculate stats
-  const stats = calculateStats(watches);
+  // Split the register: the collection you own vs. the wishlist you want.
+  const ownedWatches = watches.filter((w) => !w.isInWishlist);
+  const wishlist = watches.filter((w) => w.isInWishlist);
 
-  // Filter and sort watches
+  // Stats and analytics describe the owned collection only.
+  const stats = calculateStats(ownedWatches);
+
+  // Filter and sort the owned collection
   const filteredWatches = useCallback(() => {
-    let result = [...watches];
+    let result = [...ownedWatches];
 
     // Text search
     if (searchFilters.query) {
@@ -143,7 +152,7 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     }
 
     return result;
-  }, [watches, searchFilters]);
+  }, [ownedWatches, searchFilters]);
 
   // Watch operations
   const addWatch = useCallback(
@@ -155,6 +164,12 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     },
     []
   );
+
+  const addWishlistItem = useCallback(async (data: WishlistFormData) => {
+    const created = await createWishlistItem(data);
+    setWatches((prev) => [created, ...prev]);
+    return created.id;
+  }, []);
 
   const updateWatchData = useCallback(
     async (watchId: string, watchData: Partial<Watch>) => {
@@ -182,7 +197,7 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     [watches]
   );
 
-  // Favorite & Wishlist
+  // Favorites (within the owned collection)
   const toggleFavorite = useCallback(
     (watchId: string) => {
       const watch = watches.find((w) => w.id === watchId);
@@ -193,23 +208,17 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     [watches, updateWatchData]
   );
 
-  const toggleWishlist = useCallback(
-    (watchId: string) => {
-      const watch = watches.find((w) => w.id === watchId);
-      if (watch) {
-        updateWatchData(watchId, { isInWishlist: !watch.isInWishlist });
-      }
-    },
-    [watches, updateWatchData]
-  );
-
   const getFavorites = useCallback(() => {
-    return watches.filter((w) => w.isFavorite);
-  }, [watches]);
+    return ownedWatches.filter((w) => w.isFavorite);
+  }, [ownedWatches]);
 
-  const getWishlist = useCallback(() => {
-    return watches.filter((w) => w.isInWishlist);
-  }, [watches]);
+  // Move a wishlist item into the owned collection.
+  const moveToCollection = useCallback(
+    async (watchId: string) => {
+      await updateWatchData(watchId, { isInWishlist: false });
+    },
+    [updateWatchData]
+  );
 
   // Search & Filter
   const setSearchFiltersData = useCallback((filters: Partial<SearchFilters>) => {
@@ -276,6 +285,8 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
 
   const value: CollectionContextType = {
     watches,
+    ownedWatches,
+    wishlist,
     stats,
     settings,
     filteredWatches: filteredWatches(),
@@ -286,9 +297,9 @@ export function CollectionProvider({ children }: { children: React.ReactNode }) 
     deleteWatchById: deleteWatchData,
     getWatchById: getWatchByIdData,
     toggleFavorite,
-    toggleWishlist,
     getFavorites,
-    getWishlist,
+    addWishlistItem,
+    moveToCollection,
     setSearchFilters: setSearchFiltersData,
     resetSearchFilters,
     updateCollectionSettings,

@@ -23,7 +23,8 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  app.use(express.json({ limit: "5mb" }));
+  // Images are stored inline as base64 data URLs, so allow a generous body size.
+  app.use(express.json({ limit: "25mb" }));
 
   await initializeDatabase();
 

@@ -21,6 +21,7 @@ export interface WatchRecord {
   updatedAt: string;
   isFavorite: boolean;
   isInWishlist: boolean;
+  listingUrl: string;
 }
 
 export interface SettingsRecord {
@@ -57,7 +58,8 @@ export async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
-      is_in_wishlist BOOLEAN NOT NULL DEFAULT FALSE
+      is_in_wishlist BOOLEAN NOT NULL DEFAULT FALSE,
+      listing_url TEXT NOT NULL DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS settings (
@@ -65,6 +67,9 @@ export async function initializeDatabase() {
       value JSONB NOT NULL
     );
   `);
+
+  // Migrate tables created before these columns existed.
+  await pool.query(`ALTER TABLE watches ADD COLUMN IF NOT EXISTS listing_url TEXT NOT NULL DEFAULT ''`);
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -93,6 +98,7 @@ export function normalizeWatchPayload(input: Record<string, any> = {}): WatchRec
     updatedAt: input.updatedAt || now,
     isFavorite: Boolean(input.isFavorite),
     isInWishlist: Boolean(input.isInWishlist),
+    listingUrl: input.listingUrl || "",
   };
 }
 
@@ -117,12 +123,13 @@ export function normalizeWatchRow(row: Record<string, any>): WatchRecord {
     updatedAt: row.updated_at,
     isFavorite: Boolean(row.is_favorite),
     isInWishlist: Boolean(row.is_in_wishlist),
+    listingUrl: row.listing_url || "",
   };
 }
 
 export async function listWatches(): Promise<WatchRecord[]> {
   const result = await pool.query(
-    `SELECT id, name, brand, model, reference_number, purchase_price, current_market_value, purchase_date, year, movement_type, case_size, notes, brand_logo_url, hero_image_url, gallery_images, created_at, updated_at, is_favorite, is_in_wishlist
+    `SELECT id, name, brand, model, reference_number, purchase_price, current_market_value, purchase_date, year, movement_type, case_size, notes, brand_logo_url, hero_image_url, gallery_images, created_at, updated_at, is_favorite, is_in_wishlist, listing_url
      FROM watches
      ORDER BY created_at DESC`
   );
@@ -131,7 +138,7 @@ export async function listWatches(): Promise<WatchRecord[]> {
 
 export async function getWatch(id: string): Promise<WatchRecord | null> {
   const result = await pool.query(
-    `SELECT id, name, brand, model, reference_number, purchase_price, current_market_value, purchase_date, year, movement_type, case_size, notes, brand_logo_url, hero_image_url, gallery_images, created_at, updated_at, is_favorite, is_in_wishlist
+    `SELECT id, name, brand, model, reference_number, purchase_price, current_market_value, purchase_date, year, movement_type, case_size, notes, brand_logo_url, hero_image_url, gallery_images, created_at, updated_at, is_favorite, is_in_wishlist, listing_url
      FROM watches
      WHERE id = $1`,
     [id]
@@ -146,8 +153,8 @@ export async function createWatch(input: Record<string, any>): Promise<WatchReco
   const watch = normalizeWatchPayload(input);
   await pool.query(
     `INSERT INTO watches (
-      id, name, brand, model, reference_number, purchase_price, current_market_value, purchase_date, year, movement_type, case_size, notes, brand_logo_url, hero_image_url, gallery_images, created_at, updated_at, is_favorite, is_in_wishlist
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+      id, name, brand, model, reference_number, purchase_price, current_market_value, purchase_date, year, movement_type, case_size, notes, brand_logo_url, hero_image_url, gallery_images, created_at, updated_at, is_favorite, is_in_wishlist, listing_url
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
     [
       watch.id,
       watch.name,
@@ -168,6 +175,7 @@ export async function createWatch(input: Record<string, any>): Promise<WatchReco
       watch.updatedAt,
       watch.isFavorite,
       watch.isInWishlist,
+      watch.listingUrl,
     ]
   );
   return watch;
@@ -179,8 +187,8 @@ export async function updateWatch(id: string, input: Record<string, any>): Promi
   const updated = normalizeWatchPayload({ ...current, ...input, id, updatedAt: new Date().toISOString() });
   await pool.query(
     `UPDATE watches
-     SET name = $1, brand = $2, model = $3, reference_number = $4, purchase_price = $5, current_market_value = $6, purchase_date = $7, year = $8, movement_type = $9, case_size = $10, notes = $11, brand_logo_url = $12, hero_image_url = $13, gallery_images = $14, updated_at = $15, is_favorite = $16, is_in_wishlist = $17
-     WHERE id = $18`,
+     SET name = $1, brand = $2, model = $3, reference_number = $4, purchase_price = $5, current_market_value = $6, purchase_date = $7, year = $8, movement_type = $9, case_size = $10, notes = $11, brand_logo_url = $12, hero_image_url = $13, gallery_images = $14, updated_at = $15, is_favorite = $16, is_in_wishlist = $17, listing_url = $18
+     WHERE id = $19`,
     [
       updated.name,
       updated.brand,
@@ -199,6 +207,7 @@ export async function updateWatch(id: string, input: Record<string, any>): Promi
       updated.updatedAt,
       updated.isFavorite,
       updated.isInWishlist,
+      updated.listingUrl,
       id,
     ]
   );

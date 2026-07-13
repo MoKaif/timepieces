@@ -40,6 +40,7 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
           brandLogoUrl: initialData.brandLogoUrl,
           heroImageUrl: initialData.heroImageUrl,
           galleryImages: initialData.galleryImages,
+          listingUrl: initialData.listingUrl ?? "",
         }
       : {
           name: "",
@@ -56,6 +57,7 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
           brandLogoUrl: "",
           heroImageUrl: "",
           galleryImages: [],
+          listingUrl: "",
         }
   );
 
@@ -427,6 +429,14 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
               disabled={isLoading}
             />
           )}
+          <input
+            ref={heroImageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleImageUpload(e, "heroImageUrl")}
+            className="hidden"
+            disabled={isLoading}
+          />
         </div>
 
         {/* Gallery Images */}

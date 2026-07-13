@@ -30,7 +30,7 @@ function Loader({ label }: { label: string }) {
 }
 
 export default function Dashboard() {
-  const { watches, stats, isLoading, toggleFavorite, toggleWishlist } = useCollection();
+  const { ownedWatches, stats, isLoading, toggleFavorite } = useCollection();
 
   if (isLoading) {
     return (
@@ -42,13 +42,13 @@ export default function Dashboard() {
 
   const netChange = stats.totalAppreciation - stats.totalDepreciation;
   const up = netChange >= 0;
-  const valueByBrand = getValueByBrandData(watches);
+  const valueByBrand = getValueByBrandData(ownedWatches);
   const brandDistribution = Object.entries(stats.brandDistribution).map(([name, value]) => ({ name, value }));
-  const mostValuable = getMostValuableWatches(watches, 5);
-  const insights = getCollectionInsights(watches);
-  const recent = [...watches].slice(0, 3);
+  const mostValuable = getMostValuableWatches(ownedWatches, 5);
+  const insights = getCollectionInsights(ownedWatches);
+  const recent = [...ownedWatches].slice(0, 3);
 
-  if (watches.length === 0) {
+  if (ownedWatches.length === 0) {
     return (
       <Layout currentPage="dashboard">
         <div className="container max-w-3xl mx-auto px-4 py-28 text-center">
@@ -137,7 +137,7 @@ export default function Dashboard() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recent.map((w) => (
-                <WatchCard key={w.id} watch={w} onFavoriteToggle={toggleFavorite} onWishlistToggle={toggleWishlist} />
+                <WatchCard key={w.id} watch={w} onFavoriteToggle={toggleFavorite} />
               ))}
             </div>
           </section>

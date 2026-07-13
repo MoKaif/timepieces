@@ -21,8 +21,8 @@ import { formatCompactINR, formatINR, formatPercentChange } from "@/lib/format";
 import { CHART_COLORS, axisProps, tooltipStyle } from "@/lib/chartTheme";
 
 export default function Analytics() {
-  const { watches, isLoading } = useCollection();
-  const stats = calculateStats(watches);
+  const { ownedWatches, isLoading } = useCollection();
+  const stats = calculateStats(ownedWatches);
 
   if (isLoading) {
     return (
@@ -34,12 +34,12 @@ export default function Analytics() {
     );
   }
 
-  const valueByBrand = getValueByBrandData(watches);
-  const brandDistribution = getBrandDistributionData(watches);
-  const mostValuable = getMostValuableWatches(watches);
-  const appreciation = getAppreciationData(watches);
-  const movementTypes = getWatchesByMovement(watches);
-  const yearData = getWatchesByYear(watches);
+  const valueByBrand = getValueByBrandData(ownedWatches);
+  const brandDistribution = getBrandDistributionData(ownedWatches);
+  const mostValuable = getMostValuableWatches(ownedWatches);
+  const appreciation = getAppreciationData(ownedWatches);
+  const movementTypes = getWatchesByMovement(ownedWatches);
+  const yearData = getWatchesByYear(ownedWatches);
 
   const summary = [
     { k: "Pieces", v: String(stats.totalWatches) },
@@ -59,7 +59,7 @@ export default function Analytics() {
       </section>
 
       <div className="container max-w-7xl mx-auto px-4 py-8">
-        {watches.length === 0 ? (
+        {ownedWatches.length === 0 ? (
           <div className="text-center py-24">
             <p className="eyebrow mb-4">No data</p>
             <h2 className="text-3xl mb-4">Nothing to measure yet</h2>

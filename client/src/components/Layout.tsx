@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
-  currentPage?: "dashboard" | "gallery" | "add" | "analytics" | "settings";
+  currentPage?: "dashboard" | "gallery" | "wishlist" | "add" | "analytics" | "settings";
 }
 
 /** Minimal watch-dial brandmark. */
@@ -56,6 +56,7 @@ export function Layout({ children, currentPage }: LayoutProps) {
   const menuItems = [
     { label: "Dashboard", href: "/", page: "dashboard" },
     { label: "Gallery", href: "/gallery", page: "gallery" },
+    { label: "Wishlist", href: "/wishlist", page: "wishlist" },
     { label: "Analytics", href: "/analytics", page: "analytics" },
     { label: "Add", href: "/add", page: "add" },
     { label: "Settings", href: "/settings", page: "settings" },

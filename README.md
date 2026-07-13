@@ -11,6 +11,8 @@ midnight-navy dial, lume-cream text, and aged-brass accents, with monospaced led
 
 - **Dashboard** — portfolio value readout, subdial stats, recent pieces, and breakdown charts.
 - **Gallery** — search, brand filters, and sorting across the whole collection.
+- **Wishlist** — watches you want, saved by URL (image + buy link), kept separate
+  from the owned collection so they don't skew your totals.
 - **Add / Edit** — full entry form with image upload (hero, brand logo, gallery) or image URLs.
 - **Watch detail** — full-bleed hero, specifications, valuation, and image gallery.
 - **Analytics** — value by brand, brand/movement distribution, acquisitions by year, and
