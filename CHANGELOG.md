@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **2026-08-17** — The add watch form now reports missing or invalid hero images
+  and consistently rejects invalid required field values.
+
 ## [1.2.0] - 2026-07-13
 
 ### Added

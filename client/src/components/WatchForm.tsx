@@ -21,6 +21,18 @@ interface WatchFormProps {
 }
 
 const MOVEMENT_TYPES: MovementType[] = ["mechanical", "automatic", "quartz", "chronograph", "tourbillon"];
+const currentYear = new Date().getFullYear();
+
+const isValidImageSource = (value: string) => {
+  if (value.startsWith("data:")) return value.startsWith("data:image/");
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
 
 export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }: WatchFormProps) {
   const [formData, setFormData] = useState<WatchFormData>(
@@ -91,17 +103,32 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: "brandLogoUrl" | "heroImageUrl") => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        setFormData((prev) => ({
-          ...prev,
-          [field]: dataUrl,
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "Please upload a valid image file" }));
+      e.target.value = "";
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (typeof dataUrl !== "string" || !isValidImageSource(dataUrl)) {
+        setErrors((prev) => ({ ...prev, [field]: "Please upload a valid image file" }));
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        [field]: dataUrl,
+      }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    };
+    reader.onerror = () => {
+      setErrors((prev) => ({ ...prev, [field]: "The image could not be uploaded" }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,13 +157,20 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const maxYear = new Date().getFullYear();
 
     if (!formData.name.trim()) newErrors.name = "Watch name is required";
     if (!formData.brand.trim()) newErrors.brand = "Brand is required";
     if (!formData.model.trim()) newErrors.model = "Model is required";
-    if (formData.purchasePrice < 0) newErrors.purchasePrice = "Purchase price must be positive";
-    if (formData.currentMarketValue < 0) newErrors.currentMarketValue = "Current value must be positive";
-    if (formData.caseSize < 20 || formData.caseSize > 60) newErrors.caseSize = "Case size should be between 20-60mm";
+    if (!Number.isFinite(formData.purchasePrice) || formData.purchasePrice < 0) newErrors.purchasePrice = "Purchase price must be zero or greater";
+    if (!Number.isFinite(formData.currentMarketValue) || formData.currentMarketValue < 0) newErrors.currentMarketValue = "Current value must be zero or greater";
+    if (!Number.isInteger(formData.year) || formData.year < 1900 || formData.year > maxYear) newErrors.year = `Year should be between 1900-${maxYear}`;
+    if (!Number.isFinite(formData.caseSize) || formData.caseSize < 20 || formData.caseSize > 60) newErrors.caseSize = "Case size should be between 20-60mm";
+    if (!formData.heroImageUrl) {
+      newErrors.heroImageUrl = errors.heroImageUrl || "No image was uploaded";
+    } else if (!isValidImageSource(formData.heroImageUrl)) {
+      newErrors.heroImageUrl = "Please upload a valid image file";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -214,10 +248,11 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
               value={formData.year}
               onChange={handleInputChange}
               min="1900"
-              max={new Date().getFullYear()}
+              max={currentYear}
               className="bg-input border-border"
               disabled={isLoading}
             />
+            {errors.year && <p className="text-red-400 text-xs mt-1">{errors.year}</p>}
           </div>
 
           <div>
@@ -374,7 +409,7 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
         {/* Hero Image */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <label className="block text-sm font-semibold">Hero Watch Image</label>
+            <label className="block text-sm font-semibold">Hero Watch Image *</label>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -397,7 +432,10 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
               <img src={formData.heroImageUrl} alt="Hero" className="w-full h-full object-cover rounded-lg" />
               <button
                 type="button"
-                onClick={() => setFormData((prev) => ({ ...prev, heroImageUrl: "" }))}
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, heroImageUrl: "" }));
+                  setErrors((prev) => ({ ...prev, heroImageUrl: "" }));
+                }}
                 className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 hover:bg-red-600"
               >
                 <X className="w-4 h-4 text-white" />
@@ -422,7 +460,14 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
               }}
               onBlur={() => {
                 if (imageUrlInput.heroImage) {
-                  setFormData((prev) => ({ ...prev, heroImageUrl: imageUrlInput.heroImage }));
+                  const heroImageUrl = imageUrlInput.heroImage.trim();
+                  if (isValidImageSource(heroImageUrl)) {
+                    setFormData((prev) => ({ ...prev, heroImageUrl }));
+                    setErrors((prev) => ({ ...prev, heroImageUrl: "" }));
+                  } else {
+                    setFormData((prev) => ({ ...prev, heroImageUrl: "" }));
+                    setErrors((prev) => ({ ...prev, heroImageUrl: "Please enter a valid image URL" }));
+                  }
                 }
               }}
               className="bg-input border-border"
@@ -437,6 +482,7 @@ export function WatchForm({ initialData, onSubmit, onCancel, isLoading = false }
             className="hidden"
             disabled={isLoading}
           />
+          {errors.heroImageUrl && <p className="text-red-400 text-xs mt-1">{errors.heroImageUrl}</p>}
         </div>
 
         {/* Gallery Images */}
