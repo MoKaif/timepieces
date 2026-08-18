@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **2026-08-17** — Registered the cache cleanup service worker on startup so it
+  clears stale resources and reloads open tabs before unregistering itself.
 - **2026-08-17** — The add watch form now reports missing or invalid hero images
   and consistently rejects invalid required field values.
 
