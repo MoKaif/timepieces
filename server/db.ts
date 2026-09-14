@@ -69,6 +69,9 @@ export async function initializeDatabase() {
   `);
 
   // Migrate tables created before these columns existed.
+  await pool.query(`ALTER TABLE watches ADD COLUMN IF NOT EXISTS gallery_images JSONB NOT NULL DEFAULT '[]'::jsonb`);
+  await pool.query(`ALTER TABLE watches ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE watches ADD COLUMN IF NOT EXISTS is_in_wishlist BOOLEAN NOT NULL DEFAULT FALSE`);
   await pool.query(`ALTER TABLE watches ADD COLUMN IF NOT EXISTS listing_url TEXT NOT NULL DEFAULT ''`);
 }
 
