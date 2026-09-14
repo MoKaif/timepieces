@@ -214,8 +214,9 @@ export async function updateWatch(id: string, input: Record<string, any>): Promi
   return updated;
 }
 
-export async function deleteWatch(id: string): Promise<void> {
-  await pool.query("DELETE FROM watches WHERE id = $1", [id]);
+export async function deleteWatch(id: string): Promise<number> {
+  const result = await pool.query("DELETE FROM watches WHERE id = $1", [id]);
+  return result.rowCount ?? 0;
 }
 
 export async function clearAllWatches(): Promise<void> {
