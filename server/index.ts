@@ -76,7 +76,8 @@ async function startServer() {
 
   app.delete("/api/watches/:id", async (req, res) => {
     try {
-      await deleteWatch(req.params.id);
+      const deleted = await deleteWatch(req.params.id);
+      if (deleted === 0) return res.status(404).json({ error: "not_found" });
       res.json({ ok: true });
     } catch (error) {
       console.error(error);
