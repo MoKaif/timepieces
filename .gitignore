@@ -4,12 +4,15 @@
 
 # Build outputs
 dist/
+native-dist/
+client/native-dist/
 build/
 *.dist
 
 # Environment variables
 .env
 .env.local
+.env.native
 .env.development.local
 .env.test.local
 .env.production.local
@@ -104,6 +107,7 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+backups/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/

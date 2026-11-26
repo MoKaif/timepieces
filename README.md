@@ -27,7 +27,16 @@ Settings → Export any time for a JSON backup.
 
 ## Running it
 
-### With Docker (recommended)
+### Native personal-server service (recommended)
+
+Use the existing host PostgreSQL instance, copy `.env.native.example` to
+`.env.native`, then build with `pnpm build:native`. Link `timepieces.service` into
+`~/.config/systemd/user/`. The process listens only on loopback port 13002 and
+host Caddy publishes port 3002.
+
+Migrate existing data from the Docker `postgres_data` volume before switching.
+
+### With Docker (development/portable alternative)
 
 Brings up PostgreSQL and the app together:
 
