@@ -1,0 +1,18 @@
+[Unit]
+Description=Timepieces watch collection
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Developing-Environment/Timepieces
+EnvironmentFile=-%h/Developing-Environment/Timepieces/.env.native
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=13002
+ExecStart=/usr/bin/node %h/Developing-Environment/Timepieces/native-dist/index.js
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
